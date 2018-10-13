@@ -32,6 +32,9 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
     private ScrollView scrollView;
     private boolean registered=false;
 
+    public String waterVolume = "";
+    public String waterTemp = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +45,7 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
         send = (Button)findViewById(R.id.send);
         scrollView = (ScrollView) findViewById(R.id.scrollView);
 
-        text.setMovementMethod(new ScrollingMovementMethod());
+        text.setMovementMethod(new ScrollingMovementMethod()); // Allows you to scroll.
         send.setEnabled(false);
 
         b = new Bluetooth(this);
@@ -53,7 +56,7 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
         int pos = getIntent().getExtras().getInt("pos");
         name = b.getPairedDevices().get(pos).getName();
 
-        Display("Connecting...");
+        Display(" Connecting...");
         b.connectToDevice(b.getPairedDevices().get(pos));
 
         send.setOnClickListener(new View.OnClickListener() {
@@ -119,11 +122,53 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
         this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                text.append(s + "\n");
+                int sLength = s.length();
+                if (sLength > 8) {
+                    // Confirm we are looking at the right data flow.
+                    if ((s.charAt(6)) == ' ') {
+                        // Probably better implementation but hey, it works.
+                        // NOTE: API outputs HC-06: before every data output.
+                        if ((s.charAt(7)) == 't') {
+                            waterTemp = getValueFromTerminal(sLength, s);
+                            text.append("Temperature Variable is: " + waterTemp + "\n");
+                        }
+                        else if ((s.charAt(7)) == 'd') {
+                            waterVolume = getValueFromTerminal(sLength, s);
+                            text.append("Volume Variable is: " + waterVolume + "\n");
+                        }
+
+                        // Extract temperature string here.
+                        waterTemp = ""; // Clear string.
+                    }
+
+                }
+                // text.append(s + "\n");
                 scrollView.fullScroll(View.FOCUS_DOWN);
             }
         });
     }
+
+    public String getValueFromTerminal(int sLength, String s) {
+        int i = 8;
+        String returnValue = "";
+        // Be sure not to read unallocated values.
+        while (!(i == sLength)) {
+            char c = s.charAt(i);
+            String sTemp = Character.toString(c);
+            returnValue += sTemp;
+            i++;
+        }
+        return returnValue;
+    }
+
+    // Input age, height, weight, exerRating
+    // Return cups of water to drink for the day!
+    public double recWaterIntake(int age, int height, int weight, int exerRating) {
+        double bmi = (weight / (height * height));
+        double recWaterL = (bmi * 0.062) + (exerRating / 3) + (age / 100);
+        return (recWaterL * 4.22675); // Return cups of water
+    }
+
 
     @Override
     public void onConnect(BluetoothDevice device) {
@@ -139,7 +184,7 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
     @Override
     public void onDisconnect(BluetoothDevice device, String message) {
         Display("Disconnected!");
-        Display("Connecting again...");
+        Display(" Connecting again...");
         b.connectToDevice(device);
     }
 
