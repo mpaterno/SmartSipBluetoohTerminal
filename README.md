@@ -1,8 +1,7 @@
 # Bluetooth-Terminal
-Source code of my application "Bluetooth Terminal" on the playstore.
+Adapted API using a bluetooh library (https://github.com/omaflak/Bluetooth-Library
+) that allowed for the transfer of sensor data from an arduino to an Android App. 
 
-https://play.google.com/store/apps/details?id=me.aflak.bluetoothterminal
+Check out the that projet here: https://github.com/mpaterno/SmartSip
 
-# Bluetooth library
 
-https://github.com/omaflak/Bluetooth-Library
